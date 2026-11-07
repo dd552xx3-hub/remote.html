@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remote TV Từ Xa (4G/Cloud)</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; user-select: none; }
+    .status { font-size: 13px; margin-bottom: 15px; color: #ff9800; }
+    .grid { display: grid; grid-template-columns: repeat(3, 85px); gap: 12px; justify-content: center; margin: 15px auto; }
+    button { background: #2c2c2c; color: #fff; border: 1px solid #444; border-radius: 14px; padding: 18px 0; font-size: 16px; font-weight: bold; active: background #4caf50; }
+    button:active { background: #00e676; color: #000; }
+    .pwr { background: #d32f2f; }
+    .ok { background: #1976d2; border-radius: 50%; }
+    .url-box { margin-top: 20px; display: flex; gap: 8px; justify-content: center; }
+    input { padding: 12px; border-radius: 8px; border: none; width: 65%; }
+  </style>
+</head>
+<body>
+  <h3>ĐIỀU KHIỂN VIETTEL BOX</h3>
+  <div id="status" class="status">Đang kết nối Cloud...</div>
+
+  <div class="grid">
+    <button class="pwr" onclick="send('POWER')">NGUỒN</button>
+    <button onclick="send('HOME')">HOME</button>
+    <button onclick="send('BACK')">BACK</button>
+
+    <div></div>
+    <button onclick="send('UP')">▲</button>
+    <div></div>
+
+    <button onclick="send('LEFT')">◄</button>
+    <button class="ok" onclick="send('OK')">OK</button>
+    <button onclick="send('RIGHT')">►</button>
+
+    <div></div>
+    <button onclick="send('DOWN')">▼</button>
+    <div></div>
+
+    <button onclick="send('VOL_UP')">VOL +</button>
+    <button onclick="send('MUTE')">MUTE</button>
+    <button onclick="send('CH_UP')">CH +</button>
+
+    <button onclick="send('VOL_DOWN')">VOL -</button>
+    <button onclick="send('YOUTUBE')">YOUTUBE</button>
+    <button onclick="send('CH_DOWN')">CH -</button>
+  </div>
+
+  <div class="url-box">
+    <input id="ytUrl" placeholder="Dán link YouTube hoặc Web..." />
+    <button style="padding: 12px 16px;" onclick="sendUrl()">MỞ</button>
+  </div>
+
+  <script>
+    // Đổi chuỗi này thành mã bí mật của riêng bạn
+    const TOPIC = "hunonic_replace/dat_tv360_secret_2026/cmd";
+    const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
+
+    client.on("connect", () => {
+      document.getElementById("status").innerText = "🟢 Đã kết nối Cloud (Sẵn sàng điều khiển qua 4G)";
+      document.getElementById("status").style.color = "#00e676";
+    });
+
+    function send(action) {
+      if (navigator.vibrate) navigator.vibrate(40);
+      client.publish(TOPIC, JSON.stringify({ type: "KEY", cmd: action }));
+    }
+
+    function sendUrl() {
+      const url = document.getElementById("ytUrl").value.trim();
+      if (url) client.publish(TOPIC, JSON.stringify({ type: "URL", url: url }));
+    }
+  </script>
+</body>
+</html>
